@@ -8,22 +8,21 @@ corners = np.array([[0.0, 0.0, 5.0, 5.0],
 safe_rad = 0.2
 
 robots = [robot.Robot(i) for i in range(5)]
-robots[0].set_bvc([2.5 + 0.2*random.random(), 0.5 + 0.2*random.random()], safe_rad, corners)
-robots[1].set_bvc([4.5 + 0.2*random.random(), 2.5 + 0.2*random.random()], safe_rad, corners)
-robots[2].set_bvc([4.0 + 0.2*random.random(), 4.5 + 0.2*random.random()], safe_rad, corners)
-robots[3].set_bvc([1.0 + 0.2*random.random(), 4.5 + 0.2*random.random()], safe_rad, corners)
-robots[4].set_bvc([0.5 + 0.2*random.random(), 2.5 + 0.2*random.random()], safe_rad, corners)
+robots[0].set_bvc([2.5 + 0.1*random.random(), 0.5 + 0.1*random.random()], safe_rad, corners)
+robots[1].set_bvc([4.5 + 0.1*random.random(), 2.5 + 0.1*random.random()], safe_rad, corners)
+robots[2].set_bvc([4.0 + 0.1*random.random(), 4.5 + 0.1*random.random()], safe_rad, corners)
+robots[3].set_bvc([1.0 + 0.1*random.random(), 4.5 + 0.1*random.random()], safe_rad, corners)
+robots[4].set_bvc([0.5 + 0.1*random.random(), 2.5 + 0.1*random.random()], safe_rad, corners)
 
 robots[0].set_goal([2.5, 4.5])
-robots[1].set_goal([0.5, 2.5 - 0.3])
+robots[1].set_goal([0.5, 2.5])
 robots[2].set_goal([0.5, 0.5])
-#robots[2].set_goal([3.0, 2.0])
 robots[3].set_goal([4.5, 0.5])
-robots[4].set_goal([4.5, 2.5+0.2])
+robots[4].set_goal([4.5, 2.5])
 
 
 aa = [0,1,2,3,4]
-for loop in range(200):
+for loop in range(300):
 	print loop
 	# all robots re-compute BVC
 	for i in range(5):
@@ -38,7 +37,8 @@ for loop in range(200):
 		own_pos = all_pos[:,i]
 		nbr_pos = all_pos[:,bb_array]
 		
-		robots[i].cell.update_bvc(own_pos, nbr_pos)
+		robots[i].cell.update_bvc(own_pos, nbr_pos, bb_array)
+		robots[i].mem_nbr_dist(nbr_pos, bb_array)
 		robots[i].cell.plot_bvc()
 
 	# all robots do geometric solution

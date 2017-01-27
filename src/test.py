@@ -51,3 +51,7 @@ cell.plot_bvc()
 
 cell.plot_show()
 '''
+
+a = np.array([1])
+b = np.array([-2])
+print np.minimum(a,b)

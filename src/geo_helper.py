@@ -33,6 +33,14 @@ def is_in_hull(pt, lines, tol = 1e-6):
 			return False
 	return True
 
+def is_in_circle(pt, center, radius, tol = 1e-6):
+	pt = np.reshape(pt, [2,1])
+	center = np.reshape(center, [2,1])
+	if np.linalg.norm(pt-center) <= radius:
+		return True
+	else:
+		return False
+
 def get_line(x1, x2, inner_pt = None):
 	'''
 	From two points, return normal and constant

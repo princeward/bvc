@@ -29,8 +29,9 @@ class BVC:
 		self.lines = np.empty([self.NUM_VER_PRE_ALLOCATE, 3]) # pre-allocate
 
 
-	def update_bvc(self, own_pos, nbr_pos):
+	def update_bvc(self, own_pos, nbr_pos, nbr_id):
 		# FACT: voronoi cell always has the same number of vertices and edges
+		self.valid_nbr_id = [] # neighbors that create a BVC edge 
 		self.own_pos = own_pos.reshape([2,1])
 		self.nbr_pos = nbr_pos
 		# initial BVC cell
@@ -49,6 +50,7 @@ class BVC:
 			dist_sq[i] = np.linalg.norm(temp)
 		idx = np.argsort(dist_sq) # ascending order
 		nbr_pos = nbr_pos[:,idx] # sort nbr_pos in ascending order
+		nbr_id = nbr_id[idx]
 
 		for i in range(n_nbr):
 			buf_edge = geo_helper.get_one_bvc_edge(own_pos, nbr_pos[:,i], self.safe_rad)
@@ -65,6 +67,7 @@ class BVC:
 
 			# process if the new buf edge is indeed a BVC edge
 			if is_valid_edge:
+				self.valid_nbr_id.append(nbr_id[i]) # memorize the id of this valid neighbor
 				# append the new edge
 				self.lines[num_line, :] = buf_edge
 				num_line += 1
@@ -138,9 +141,9 @@ class BVC:
 
 	def plot_bvc(self):
 		# draw own position
-		plt.plot(self.own_pos[0], self.own_pos[1],'b^')
+		plt.plot(self.own_pos[0], self.own_pos[1],'bo', markersize = int(140*self.safe_rad))
 		# draw neighbors
-		plt.plot(self.nbr_pos[0,:], self.nbr_pos[1,:],'b^')
+		plt.plot(self.nbr_pos[0,:], self.nbr_pos[1,:], 'bo', markersize = int(140*self.safe_rad))
 		# draw BVC
 		plt.plot(self.ver[0, 0:self.N], self.ver[1, 0:self.N], 'k')
 		plt.plot([self.ver[0,self.N-1], self.ver[0,0]], [self.ver[1,self.N-1], self.ver[1,0]], 'k')
