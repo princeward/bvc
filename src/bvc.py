@@ -141,18 +141,21 @@ class BVC:
 
 	def plot_bvc(self):
 		# draw own position
-		plt.plot(self.own_pos[0], self.own_pos[1],'bo', markersize = int(140*self.safe_rad))
+		#plt.plot(self.own_pos[0], self.own_pos[1],'bo', markersize = int(140*self.safe_rad))
 		# draw neighbors
-		plt.plot(self.nbr_pos[0,:], self.nbr_pos[1,:], 'bo', markersize = int(140*self.safe_rad))
+		#plt.plot(self.nbr_pos[0,:], self.nbr_pos[1,:], 'bo', markersize = int(140*self.safe_rad))
 		# draw BVC
 		plt.plot(self.ver[0, 0:self.N], self.ver[1, 0:self.N], 'k')
 		plt.plot([self.ver[0,self.N-1], self.ver[0,0]], [self.ver[1,self.N-1], self.ver[1,0]], 'k')
 
 		plt.axis([0,5,0,5])
 
-	def plot_point(self, pt, mkr):
+	def plot_self(self, marker = 'o', clr = 'b'):
+		plt.plot(self.own_pos[0], self.own_pos[1], marker, markersize = int(140*self.safe_rad), alpha = 0.8)
+
+	def plot_point(self, pt, mkr = 'o', clr = 'b', ms = 5):
 		pt = pt.reshape(2)
-		plt.plot(pt[0], pt[1], mkr)
+		plt.plot(pt[0], pt[1], mkr, color = clr, markersize = ms)
 
 	def plot_show(self):
 		plt.draw()

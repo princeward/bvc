@@ -87,9 +87,6 @@ class Robot:
 				self.action_nbr_idx = None
 
 
-	def plot_point(self, pt, mkr):
-		self.cell.plot_point(pt, mkr)
-
 	def move(self, set_pt):
 		'''
 		move to a setpoint under speed limit

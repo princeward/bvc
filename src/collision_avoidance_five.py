@@ -2,6 +2,8 @@ import numpy as np
 import random
 import robot
 
+COLORS = ['b', 'g', 'r', 'c', 'm', 'y']
+
 # collison avoidance example with five robots
 corners = np.array([[0.0, 0.0, 5.0, 5.0], 
 					[0.0, 5.0, 5.0, 0.0]])
@@ -44,8 +46,9 @@ for loop in range(300):
 	# all robots do geometric solution
 	for rbt in robots:
 		rbt.bvc_find_closest_to_goal()
-		rbt.plot_point(rbt.closest, 'ro')
-		rbt.plot_point(rbt.goal, 'go')
+		rbt.cell.plot_self('o', COLORS[rbt.id])
+		rbt.cell.plot_point(rbt.closest, 'o', 'y')
+		rbt.cell.plot_point(rbt.goal, '*', COLORS[rbt.id], 10)
 
 	robots[0].cell.plot_show()
 	robots[0].cell.plot_pause()
