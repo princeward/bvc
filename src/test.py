@@ -3,7 +3,7 @@ import geo_helper
 import bvc
 import matplotlib.pyplot as plt
 
-
+'''
 # test with single robot
 mypos = np.array([[2.5], 
 				  [2.5]])
@@ -16,7 +16,8 @@ corners = np.array([[0.0, 0.0, 5.0, 5.0],
 cell = bvc.BVC(mypos, 0.5, corners)
 cell.update_bvc(mypos, neighbors)
 cell.plot_bvc()
-
+cell.plot_show()
+'''
 
 
 '''

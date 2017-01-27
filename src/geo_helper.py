@@ -1,7 +1,7 @@
 import numpy as np
 import pdb
 
-def is_on_line(pt, line, tol = 1e-3):
+def is_on_line(pt, line, tol = 1e-6):
 	'''
 	check whether a point is on the line
 	'''
@@ -11,7 +11,7 @@ def is_on_line(pt, line, tol = 1e-3):
 	else:
 		return False
 
-def is_in_half_plane(pt, line, tol = 1e-3):
+def is_in_half_plane(pt, line, tol = 1e-6):
 	'''
 	line: 1x3 array
 	tol: tolerance for numerical reason
@@ -22,7 +22,7 @@ def is_in_half_plane(pt, line, tol = 1e-3):
 	else:
 		return False
 
-def is_in_hull(pt, lines, tol = 1e-3):
+def is_in_hull(pt, lines, tol = 1e-6):
 	'''
 	determine if a point is inside a convex hull formed by lines
 	lines: nx3 matrix
@@ -95,10 +95,25 @@ def get_line_intersect(line1, line2):
 	c[0,0] = line1[0,2]
 	A[1,:] = line2[0,0:2]
 	c[1,0] = line2[0,2]
-	Ainv = np.linalg.inv(A) # TODO: A not invertible?
+	if np.linalg.matrix_rank(A) == 2: # invertible
+		Ainv = np.linalg.inv(A) 
+	else:
+		return None
 
 	return (-np.dot(Ainv, c) ) # note there should be a neg sign
 
+
+def project_pt_to_line(pt, line):
+	'''
+	project a point to the line, and find that point
+	'''
+	line = line.reshape(1,3)
+	perp_line = np.empty((1,3))
+	n = np.array([-line[0,1], line[0,0]])
+	c = -np.dot(n, pt)
+	perp_line[0,0:2] = n
+	perp_line[0,2] = c
+	return get_line_intersect(perp_line, line)
 
 
 

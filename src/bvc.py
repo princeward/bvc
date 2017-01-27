@@ -7,7 +7,7 @@ class BVC:
 	# static variables
 	NUM_VER_PRE_ALLOCATE = 10
 
-	def __init__(self, own_pos, safe_rad, world_corners = None):
+	def __init__(self, own_pos, safe_rad, world_corners):
 		'''
 		world_corners must be arranged in order: 2 x n (n is the # of corners)
 		own_pos is used to determine the interior of the world
@@ -34,6 +34,8 @@ class BVC:
 		self.own_pos = own_pos.reshape([2,1])
 		self.nbr_pos = nbr_pos
 		# initial BVC cell
+		self.ver = np.empty([2, self.NUM_VER_PRE_ALLOCATE]) # pre-allocate 20 vertices for the efficiency of pending
+		self.lines = np.empty([self.NUM_VER_PRE_ALLOCATE, 3]) # pre-allocate
 		self.ver[:, 0:self.n_world_corners] = self.world_corners
 		self.lines[0:self.n_world_corners, :] = self.world_edges
 		
@@ -50,14 +52,16 @@ class BVC:
 
 		for i in range(n_nbr):
 			buf_edge = geo_helper.get_one_bvc_edge(own_pos, nbr_pos[:,i], self.safe_rad)
-			is_valid_edge = False			
+			is_valid_edge = False	
 			# find new intersection points with existing lines
 			for j in range(num_line):
 				int_pt = geo_helper.get_line_intersect(buf_edge, self.lines[j,:])
-				if geo_helper.is_in_hull(int_pt, self.lines[0:num_line, :]): # valid intersection point, append it as new vertice
-					self.ver[:,num_ver] = int_pt.reshape(2) # append the vertex
-					num_ver += 1
-					is_valid_edge = True
+				if int_pt is not None:
+					if geo_helper.is_in_hull(int_pt, self.lines[0:num_line, :]): # valid intersection point, append it as new vertice
+						###################
+						self.ver[:,num_ver] = int_pt.reshape(2) # append the vertex
+						num_ver += 1
+						is_valid_edge = True
 
 			# process if the new buf edge is indeed a BVC edge
 			if is_valid_edge:
@@ -100,19 +104,58 @@ class BVC:
 		angIdx = np.argsort(angles)
 		self.ver = self.ver[:,angIdx]
 
+	def find_closest_to_goal(self, goal):
+		'''
+		find the closest point on the cell to a goal point
+		'''
+		goal = np.reshape(goal,(2,1))
+		# 1. check if the goal is already inside BVC
+		if geo_helper.is_in_hull(goal, self.lines[0:self.N, :]): # self.lines has redandent pre-allocated elements, need to disregard
+			return goal
+
+		# 2. check all vertices
+		dist_min = float('inf')
+		pt_min = np.zeros((2,1))
+		for i in range(self.N):
+			dist = np.linalg.norm(self.ver[:,i] - goal)
+			if dist < dist_min:
+				dist_min = dist
+				pt_min = self.ver[:,i]
+
+		# 3. check projections to edges
+		for i in range(self.N):
+			proj_pt = geo_helper.project_pt_to_line(goal, self.lines[i,:])
+			if proj_pt is None: # it's possible there is no intersection point
+				continue
+			if geo_helper.is_in_hull(proj_pt, self.lines[0:self.N, :]):
+				dist = np.linalg.norm(proj_pt - goal)
+				if dist < dist_min:
+					dist_min = dist
+					pt_min = proj_pt
+
+		return pt_min
+
 
 	def plot_bvc(self):
 		# draw own position
-		plt.plot(self.own_pos[0], self.own_pos[1],'bo')
+		plt.plot(self.own_pos[0], self.own_pos[1],'b^')
 		# draw neighbors
-		plt.plot(self.nbr_pos[0,:], self.nbr_pos[1,:],'bo')
+		plt.plot(self.nbr_pos[0,:], self.nbr_pos[1,:],'b^')
 		# draw BVC
-		print self.ver
-		#for i in range(self.N-1):
-		plt.plot(self.ver[0, 0:self.N], self.ver[1, 0:self.N], 'r')
-		plt.plot([self.ver[0,self.N-1], self.ver[0,0]], [self.ver[1,self.N-1], self.ver[1,0]], 'r')
+		plt.plot(self.ver[0, 0:self.N], self.ver[1, 0:self.N], 'k')
+		plt.plot([self.ver[0,self.N-1], self.ver[0,0]], [self.ver[1,self.N-1], self.ver[1,0]], 'k')
 
 		plt.axis([0,5,0,5])
 
+	def plot_point(self, pt, mkr):
+		pt = pt.reshape(2)
+		plt.plot(pt[0], pt[1], mkr)
+
 	def plot_show(self):
-		plt.show()
+		plt.draw()
+
+	def plot_reset(self):
+		plt.clf()
+
+	def plot_pause(self):
+		plt.pause(0.05)
