@@ -52,6 +52,5 @@ cell.plot_bvc()
 cell.plot_show()
 '''
 
-a = np.empty((2,1))
-a = np.hstack( (a, np.array( [[1],[2]])) )
-print a.shape
+a = True
+print a + 1

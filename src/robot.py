@@ -26,6 +26,8 @@ class Robot:
 		self.new_nbr_dist = -np.ones(self.N_ROBOT_MAX)
 		self.action_nbr_idx = None
 
+		self.decision_flag = 0
+
 	def set_bvc(self, own_pos, safe_rad, world_corners):
 		self.pos = np.reshape(own_pos,(2,1))
 		self.cell = bvc.BVC(self.pos, safe_rad, world_corners)
@@ -72,9 +74,11 @@ class Robot:
 		if goal is not None:
 			self.goal = goal
 
-		if self.check_potential_deadlock(): # robot is close to potential deadlock
+		if self.check_potential_deadlock( 1.0 + 0.8*self.decision_flag ): # robot is close to potential deadlock
+			self.decision_flag = 1
 			return self.find_critical_unstable_pt() # Note: may return None
 		else: # no potential deadlock, return regular closest point
+			self.decision_flag = 0
 			return self.cell.find_closest_to_goal(self.goal)
 		
 		'''
@@ -94,11 +98,11 @@ class Robot:
 				self.action_nbr_idx = None
 		'''
 
-	def check_potential_deadlock(self):
+	def check_potential_deadlock(self, ratio_adj = 1.0):
 		'''
 		Check whether a potential deadlock exists (three-robot case)
 		Input:
-			None
+			ratio_adj: can be used to increase or decrease detection range, default = 1.0
 		Return:
 			True: has potential deadlock
 			False: no deadlock
@@ -131,9 +135,9 @@ class Robot:
 
 			# check potential deadlock
 			for i in range(n_nbr-1):
-				if (dist1[i] <= self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
-				(dist2[i] <= self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
-				(dist3[i] <= self.DEADLOCK_THRES_RATIO * self.cell.safe_rad):
+				if (dist1[i] <= ratio_adj*self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
+				(dist2[i] <= ratio_adj*self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
+				(dist3[i] <= ratio_adj*self.DEADLOCK_THRES_RATIO * self.cell.safe_rad):
 					#print "potential deadlock for robot {0}".format(self.id)
 					# TODO: Check whether the closest point is on the vertice of the BVC
 					if self.close_nbr_pos is None:
@@ -143,9 +147,9 @@ class Robot:
 					self.close_nbr_pos = np.hstack( (self.close_nbr_pos, valid_nbr_pos[:, i+1].reshape( (2,1) )) )
 					check_result = True
 			# check tail and head case
-			if (dist1[n_nbr-1] <= self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
-			(dist2[n_nbr-1] <= self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
-			(dist3[n_nbr-1] <= self.DEADLOCK_THRES_RATIO * self.cell.safe_rad):
+			if (dist1[n_nbr-1] <= ratio_adj*self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
+			(dist2[n_nbr-1] <= ratio_adj*self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) and \
+			(dist3[n_nbr-1] <= ratio_adj*self.DEADLOCK_THRES_RATIO * self.cell.safe_rad):
 				#print "potential deadlock for robot {0}".format(self.id)
 				# TODO: Check whether the closest point is on the vertice of the BVC
 				if self.close_nbr_pos is None:
@@ -169,6 +173,10 @@ class Robot:
 		dist_min = float('Inf')
 		result_pt = None
 
+		# check if the goal is already inside bvc
+		if geo_helper.is_in_hull(self.goal, self.cell.lines): # self.lines has redandent pre-allocated elements, need to disregard
+			return self.goal
+
 		# iterate through all valid neighbors
 		for i in range(len(self.valid_nbr_id)): # assume self.valid_nbr_id has been updated in check_potential_deadlock()
 			# first, make sure the neighbor robot "blocks" the way to goal
@@ -179,8 +187,7 @@ class Robot:
 				line = geo_helper.get_line(self.goal, nbr) # get a line between goal and this neighbor
 				inter_pts = self.cell.get_line_intersect_bvc(line) # may have 0, 1, 2 intersection point(s)
 				# first, check if there is no intersection point
-				if inter_pts is None:
-					#break
+				if inter_pts is None: # if no intersection point, use the vertices of BVC
 					inter_pts = self.cell.ver
 				# consider all the intersection points
 				for i in range(inter_pts.shape[1]):
@@ -194,8 +201,23 @@ class Robot:
 						if (dist < dist_min) and (dist > self.DEADLOCK_THRES_RATIO * self.cell.safe_rad):
 							dist_min = dist
 							result_pt = inter_pts[:, i].reshape((2,1))
-					# TODO: there is a chance that intersection point is outside of BVC, but there are good points to find
-
+				'''
+				if result_pt is None: # if result_pt is still None, our last resort is to consider bvc vertices
+									  # this case has lowest priority, but better than return None
+					inter_pts = self.cell.ver
+					# do the exactly the same step as before
+					for i in range(inter_pts.shape[1]):
+						# second, check if the point is too close to deadlock situation
+						for j in range(self.close_nbr_pos.shape[1]/2):
+							if (geo_helper.get_two_point_dist(inter_pts[:,i], self.close_nbr_pos[:, 2*j]) < self.DEADLOCK_THRES_RATIO * self.cell.safe_rad) or \
+							(geo_helper.get_two_point_dist(inter_pts[:,i], self.close_nbr_pos[:, 2*j+1]) < self.DEADLOCK_THRES_RATIO * self.cell.safe_rad):
+								break
+							# lastly, compare which one is a better point
+							dist = geo_helper.get_two_point_dist(inter_pts[:, i], self.goal)
+							if (dist < dist_min) and (dist > self.DEADLOCK_THRES_RATIO * self.cell.safe_rad):
+								dist_min = dist
+								result_pt = inter_pts[:, i].reshape((2,1))					
+				'''
 		return result_pt
 
 

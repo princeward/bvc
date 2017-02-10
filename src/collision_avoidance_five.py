@@ -69,5 +69,5 @@ for loop in range(300):
 		'''
 		pass
 
-	#if loop % 10 == 0:
-	#	raw_input("Press Enter to continue...")
+	if loop % 20 == 0:
+		raw_input("Press Enter to continue...")

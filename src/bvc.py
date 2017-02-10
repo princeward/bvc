@@ -136,6 +136,10 @@ class BVC:
 			col = np.where(nbr_id == valid_id)
 			self.valid_nbr_pos[:, itr] = nbr_pos[:, col[0][0]]
 
+		# truncate self.lines and self.ver to get rid of the useless pre-allocated empty elements
+		self.lines = self.lines[0:self.N, :]
+		self.ver = self.ver[:, 0:self.N]
+
 	def find_closest_to_goal(self, goal):
 		'''
 		find the closest point on the cell to a goal point
@@ -197,10 +201,10 @@ class BVC:
 		plt.plot(self.ver[0, 0:self.N], self.ver[1, 0:self.N], 'k')
 		plt.plot([self.ver[0,self.N-1], self.ver[0,0]], [self.ver[1,self.N-1], self.ver[1,0]], 'k')
 
-		plt.axis([0,5,0,5])
+		plt.axis([-1.1,6.1,-1.1,6.1])
 
 	def plot_self(self, marker = 'o', clr = 'b'):
-		plt.plot(self.own_pos[0], self.own_pos[1], marker, markersize = int(140*self.safe_rad), alpha = 0.8)
+		plt.plot(self.own_pos[0], self.own_pos[1], marker, markersize = int(120*self.safe_rad), alpha = 0.8)
 
 	def plot_point(self, pt, mkr = 'o', clr = 'b', ms = 5):
 		if pt is not None:
