@@ -25,7 +25,7 @@ robots[4].set_goal([4.5, 2.5])
 
 aa = [0,1,2,3,4]
 for loop in range(300):
-	print loop
+	# print loop
 	# all robots re-compute BVC
 	for i in range(5):
 		all_pos = np.zeros((2,5))
@@ -33,7 +33,7 @@ for loop in range(300):
 			all_pos[:,r,None] = robots[r].get_pos() # none is used to preserve dimensionality
 
 		bb = [x for x in aa if x != i]
-		bb_array = np.array(bb)
+		bb_array = np.array(bb) # this is the IDs of neighboring robots
 		
 		# extract own pos for robot i, as well as all other neighbor robots
 		own_pos = all_pos[:,i]
@@ -47,13 +47,23 @@ for loop in range(300):
 	for rbt in robots:
 		rbt.bvc_find_closest_to_goal()
 		rbt.cell.plot_self('o', COLORS[rbt.id])
+		rbt.plot_id()
 		rbt.cell.plot_point(rbt.closest, 'o', 'y')
 		rbt.cell.plot_point(rbt.goal, '*', COLORS[rbt.id], 10)
 
 	robots[0].cell.plot_show()
-	robots[0].cell.plot_pause()
+	robots[0].cell.plot_pause(nsec = 0.01)
 	robots[0].cell.plot_reset()
 
 	# all robots move
 	for rbt in robots:
 		rbt.move(rbt.closest)
+
+		# debug
+		if rbt.id == 0:
+			valid_nbr_pos, valid_nbr_id = rbt.cell.get_valid_nbr()
+			print valid_nbr_id
+			print valid_nbr_pos
+
+	if loop % 10 == 0:
+		raw_input("Press Enter to continue...")

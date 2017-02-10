@@ -28,12 +28,16 @@ class BVC:
 		self.ver = np.empty([2, self.NUM_VER_PRE_ALLOCATE]) # pre-allocate 20 vertices for the efficiency of pending
 		self.lines = np.empty([self.NUM_VER_PRE_ALLOCATE, 3]) # pre-allocate
 
+	def get_valid_nbr(self):
+		'''
+		Valid neighbor is the neighbor who share an Voronoi edge 
+		'''
+		return (self.valid_nbr_pos, self.valid_nbr_id) # the columns in valid_nbr_pos and valid_nbr_id correspond to the same rbt
 
 	def update_bvc(self, own_pos, nbr_pos, nbr_id):
 		# FACT: voronoi cell always has the same number of vertices and edges
 		self.valid_nbr_id = [] # neighbors that create a BVC edge 
 		self.own_pos = own_pos.reshape([2,1])
-		self.nbr_pos = nbr_pos
 		# initial BVC cell
 		self.ver = np.empty([2, self.NUM_VER_PRE_ALLOCATE]) # pre-allocate 20 vertices for the efficiency of pending
 		self.lines = np.empty([self.NUM_VER_PRE_ALLOCATE, 3]) # pre-allocate
@@ -107,6 +111,12 @@ class BVC:
 		angIdx = np.argsort(angles)
 		self.ver = self.ver[:,angIdx]
 
+		# update the valid neighbor index/position
+		self.valid_nbr_pos = np.zeros( (2,len(self.valid_nbr_id)) )
+		for itr, valid_id in enumerate(self.valid_nbr_id):
+			col = np.where(nbr_id == valid_id)
+			self.valid_nbr_pos[:, itr] = nbr_pos[:, col[0][0]]
+
 	def find_closest_to_goal(self, goal):
 		'''
 		find the closest point on the cell to a goal point
@@ -163,5 +173,5 @@ class BVC:
 	def plot_reset(self):
 		plt.clf()
 
-	def plot_pause(self):
-		plt.pause(0.05)
+	def plot_pause(self, nsec):
+		plt.pause(nsec)

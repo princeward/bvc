@@ -3,6 +3,7 @@ import geo_helper
 import bvc
 import random
 import pdb
+import matplotlib.pyplot as plt
 
 class Robot:
 	# static variable
@@ -99,6 +100,9 @@ class Robot:
 			self.pos = set_pt - 0.02 * unit_dir # for stability reason
 		else:
 			self.pos += self.MAX_SPD * unit_dir
+
+	def plot_id(self):
+		plt.text(self.pos[0], self.pos[1], str(self.id))
 
 
 
