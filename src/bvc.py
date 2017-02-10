@@ -140,7 +140,7 @@ class BVC:
 		self.lines = self.lines[0:self.N, :]
 		self.ver = self.ver[:, 0:self.N]
 
-	def find_closest_to_goal(self, goal):
+	def find_closest_to_goal(self, goal, pre_pt_min=None, dist_penalty_ratio = 0.05):
 		'''
 		find the closest point on the cell to a goal point
 		'''
@@ -154,6 +154,8 @@ class BVC:
 		pt_min = np.zeros((2,1))
 		for i in range(self.N):
 			dist = np.linalg.norm(self.ver[:,i] - goal)
+			if (pre_pt_min is not None) and (pre_pt_min.size != 0): # penalize on jumping too far from previous
+				dist += dist_penalty_ratio * geo_helper.get_two_point_dist(self.ver[:,i], pre_pt_min)
 			if dist < dist_min:
 				dist_min = dist
 				pt_min = self.ver[:,i]
@@ -165,6 +167,8 @@ class BVC:
 				continue
 			if geo_helper.is_in_hull(proj_pt, self.lines[0:self.N, :]):
 				dist = np.linalg.norm(proj_pt - goal)
+				if (pre_pt_min is not None) and (pre_pt_min.size != 0): # penalize on jumping too far from previous
+					dist += dist_penalty_ratio * geo_helper.get_two_point_dist(proj_pt, pre_pt_min)
 				if dist < dist_min:
 					dist_min = dist
 					pt_min = proj_pt

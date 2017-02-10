@@ -52,8 +52,8 @@ for loop in range(300):
 
 		rbt.cell.plot_self('o', COLORS[rbt.id])
 		rbt.plot_id()
-		rbt.cell.plot_point(closest, 'o', 'y')
 		rbt.cell.plot_point(rbt.goal, '*', COLORS[rbt.id], 10)
+		rbt.cell.plot_point(closest, 'o', 'y')
 
 	robots[0].cell.plot_show()
 	robots[0].cell.plot_pause(nsec = 0.01)
@@ -69,5 +69,5 @@ for loop in range(300):
 		'''
 		pass
 
-	if loop % 20 == 0:
-		raw_input("Press Enter to continue...")
+	#if loop % 20 == 0:
+	#	raw_input("Press Enter to continue...")
