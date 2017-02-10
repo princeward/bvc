@@ -25,19 +25,38 @@ class BVC:
 			self.world_edges[i,:] = geo_helper.get_line(self.world_corners[:,i], self.world_corners[:,i+1], own_pos)
 		self.world_edges[n-1:,:] = geo_helper.get_line(self.world_corners[:,n-1], self.world_corners[:,0], own_pos)
 
+		# ver and lines are BVC vertices and edges
 		self.ver = np.empty([2, self.NUM_VER_PRE_ALLOCATE]) # pre-allocate 20 vertices for the efficiency of pending
 		self.lines = np.empty([self.NUM_VER_PRE_ALLOCATE, 3]) # pre-allocate
 
 	def get_valid_nbr(self):
 		'''
 		Valid neighbor is the neighbor who share an Voronoi edge 
+		return is ordered (in terms of arctan2 angle)
 		'''
+		# sort based on arctan2: [-pi,pi]
+		n_nbr = len(self.valid_nbr_id)
+		angles = np.zeros(n_nbr)
+		for i in range(n_nbr):
+			angles[i] = np.arctan2(self.valid_nbr_pos[1,i]-self.own_pos[1,0],  self.valid_nbr_pos[0,i]-self.own_pos[0,0])
+		angIdx = np.argsort(angles)
+
+		# sort position
+		self.valid_nbr_pos = self.valid_nbr_pos[:, angIdx]
+
+		# sort id, since self.valid_nbr_id is not a numpy array, have to do the for loop
+		temp = self.valid_nbr_id
+		self.valid_nbr_id = []
+		for i in range(n_nbr):
+			self.valid_nbr_id.append( temp[angIdx[i]] )
+
 		return (self.valid_nbr_pos, self.valid_nbr_id) # the columns in valid_nbr_pos and valid_nbr_id correspond to the same rbt
 
 	def update_bvc(self, own_pos, nbr_pos, nbr_id):
 		# FACT: voronoi cell always has the same number of vertices and edges
 		self.valid_nbr_id = [] # neighbors that create a BVC edge 
 		self.own_pos = own_pos.reshape([2,1])
+		self.nbr_pos = nbr_pos
 		# initial BVC cell
 		self.ver = np.empty([2, self.NUM_VER_PRE_ALLOCATE]) # pre-allocate 20 vertices for the efficiency of pending
 		self.lines = np.empty([self.NUM_VER_PRE_ALLOCATE, 3]) # pre-allocate
@@ -148,6 +167,26 @@ class BVC:
 
 		return pt_min
 
+	def get_line_intersect_bvc(self, target_line):
+		'''
+		Given a line, find the intersection point with the BVC
+		There may be no solution, one point, or two solutions
+		INPUT:
+			target_line: 3x1 line equation: ax + by + c = 0
+		'''
+		result_pt = None
+
+		for i in range(self.lines.shape[0]): # consider all voronoi edges
+			line = self.lines[i,:].reshape((1,3))
+			inter_pt = geo_helper.get_line_intersect(line, target_line)
+			if (inter_pt is not None) and geo_helper.is_in_hull(inter_pt, self.lines): # the intersection point is in the BVC
+				if result_pt is None:
+					result_pt = inter_pt.reshape((2,1))
+				else:
+					result_pt = np.hstack( (result_pt, inter_pt.reshape((2,1))) )
+
+		return result_pt
+
 
 	def plot_bvc(self):
 		# draw own position
@@ -164,8 +203,9 @@ class BVC:
 		plt.plot(self.own_pos[0], self.own_pos[1], marker, markersize = int(140*self.safe_rad), alpha = 0.8)
 
 	def plot_point(self, pt, mkr = 'o', clr = 'b', ms = 5):
-		pt = pt.reshape(2)
-		plt.plot(pt[0], pt[1], mkr, color = clr, markersize = ms)
+		if pt is not None:
+			pt = pt.reshape(2)
+			plt.plot(pt[0], pt[1], mkr, color = clr, markersize = ms)
 
 	def plot_show(self):
 		plt.draw()

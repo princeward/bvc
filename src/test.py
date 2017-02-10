@@ -52,6 +52,6 @@ cell.plot_bvc()
 cell.plot_show()
 '''
 
-a = np.array([1])
-b = np.array([-2])
-print np.minimum(a,b)
+a = np.empty((2,1))
+a = np.hstack( (a, np.array( [[1],[2]])) )
+print a.shape

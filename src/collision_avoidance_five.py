@@ -5,8 +5,10 @@ import robot
 COLORS = ['b', 'g', 'r', 'c', 'm', 'y']
 
 # collison avoidance example with five robots
-corners = np.array([[0.0, 0.0, 5.0, 5.0], 
-					[0.0, 5.0, 5.0, 0.0]])
+#corners = np.array([[0.0, 0.0, 5.0, 5.0], 
+#					[0.0, 5.0, 5.0, 0.0]])
+corners = np.array([[-1.0, -1.0, 6.0, 6.0], 
+					[-1.0, 6.0, 6.0, -1.0]])
 safe_rad = 0.2
 
 robots = [robot.Robot(i) for i in range(5)]
@@ -45,25 +47,27 @@ for loop in range(300):
 
 	# all robots do geometric solution
 	for rbt in robots:
-		rbt.bvc_find_closest_to_goal()
+		closest = rbt.bvc_find_closest_to_goal()
+		rbt.move(closest)
+
 		rbt.cell.plot_self('o', COLORS[rbt.id])
 		rbt.plot_id()
-		rbt.cell.plot_point(rbt.closest, 'o', 'y')
+		rbt.cell.plot_point(closest, 'o', 'y')
 		rbt.cell.plot_point(rbt.goal, '*', COLORS[rbt.id], 10)
 
 	robots[0].cell.plot_show()
 	robots[0].cell.plot_pause(nsec = 0.01)
 	robots[0].cell.plot_reset()
 
-	# all robots move
+	# debug
 	for rbt in robots:
-		rbt.move(rbt.closest)
-
-		# debug
+		'''
 		if rbt.id == 0:
-			valid_nbr_pos, valid_nbr_id = rbt.cell.get_valid_nbr()
-			print valid_nbr_id
-			print valid_nbr_pos
+			# check potential deadlock
+			if rbt.check_potential_deadlock():
+				rbt.find_critical_unstable_pt()
+		'''
+		pass
 
-	if loop % 10 == 0:
-		raw_input("Press Enter to continue...")
+	#if loop % 10 == 0:
+	#	raw_input("Press Enter to continue...")

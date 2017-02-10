@@ -1,6 +1,16 @@
 import numpy as np
 import pdb
 
+def get_two_point_dist(pt1, pt2):
+	'''
+	get the distance between two points
+	INPUT:
+		pt1, pt2: 2x1 vector
+	'''
+	pt1 = pt1.reshape((2,1))
+	pt2 = pt2.reshape((2,1))
+	return np.linalg.norm(pt1-pt2)
+
 def is_on_line(pt, line, tol = 1e-6):
 	'''
 	check whether a point is on the line
@@ -46,13 +56,13 @@ def get_line(x1, x2, inner_pt = None):
 	From two points, return normal and constant
 	n'[x ;y] + a = 0
 	INPUT: x1, x2 points as array([x,y]), inner_pt make sure n'*inner_pt + a <= 0
-	OUTPUT: line, array([[n , a]])/norm(n)
+	OUTPUT: 1x3 vector
 	'''
 	n0 = x2 - x1
 	n = np.array( [ -n0[1] , n0[0] ] )
-	a = np.dot(-n, x1)
+	a = np.dot(-n.T, x1)
 	line = np.zeros([1,3])
-	line[0,0:2] = n;
+	line[0,0:2] = n.reshape((2));
 	line[0,2]  = a;
 	line = line / np.linalg.norm(n)
 
